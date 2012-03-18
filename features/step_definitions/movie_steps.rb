@@ -31,6 +31,10 @@ Then /I should see all of the movies/ do
   assert page.has_css?("table#movies tbody tr", :count => Movie.count)
 end
 
+Then /I should not see any movie/ do
+  assert ! page.has_css?("table#movies tbody tr")
+end
+
 Given /I have added "(.*)" with rating "(.*)"/ do |title, rating|
   Given %Q{I am on the Create New Movie page}
   When  %Q{I fill in "Title" with "#{title}"}
