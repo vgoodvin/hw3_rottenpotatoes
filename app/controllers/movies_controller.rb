@@ -15,14 +15,14 @@ class MoviesController < ApplicationController
       ordering,@date_header = {:order => :release_date}, 'hilite'
     end
     @all_ratings = Movie.all_ratings
-    @selected_ratings = params[:ratings] || session[:ratings] || {}
+    @selected_ratings = params[:ratings] || session[:ratings] || Hash[@all_ratings.map {|x| [x, 1]}]
 
     if params[:sort] != session[:sort]
       session[:sort] = sort
       redirect_to :sort => sort, :ratings => @selected_ratings and return
     end
 
-    if params[:ratings] != session[:ratings] and @selected_ratings != {}
+    if params[:ratings] != session[:ratings]
       session[:sort] = sort
       session[:ratings] = @selected_ratings
       redirect_to :sort => sort, :ratings => @selected_ratings and return
