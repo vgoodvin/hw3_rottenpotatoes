@@ -1,5 +1,7 @@
 # Add a declarative step here for populating the DB with movies.
 
+require 'nokogiri'
+
 Given /the following movies exist/ do |movies_table|
   Movie.delete_all
   movies_table.hashes.each do |movie|
@@ -11,13 +13,10 @@ Given /the following movies exist/ do |movies_table|
   end
 end
 
-# Make sure that one string (regexp) occurs before or after another one
-#   on the same page
-
 Then /I should see "(.*)" before "(.*)"/ do |e1, e2|
-  #  ensure that that e1 occurs before e2.
-  #  page.content  is the entire content of the page as a string.
-  assert false, "Unimplmemented"
+  doc = Nokogiri::HTML(page.body)
+  regexp = Regexp.new "#{e1}.*#{e2}"
+  assert ! doc.text.gsub(/\n|\t/s, '').match(regexp).nil?
 end
 
 When /I (un)?check the following ratings: (.*)/ do |uncheck, rating_list|
@@ -35,15 +34,9 @@ Then /I should not see any movie/ do
   assert ! page.has_css?("table#movies tbody tr")
 end
 
-Given /I have added "(.*)" with rating "(.*)"/ do |title, rating|
-  Given %Q{I am on the Create New Movie page}
-  When  %Q{I fill in "Title" with "#{title}"}
-  And   %Q{I select "#{rating}" from "Rating"}
-  And   %Q{I press "Save Changes"}
-end
-
-Then /I should see "(.*)" before "(.*)" on (.*)/ do |string1, string2, path|
-  Given %Q{I am on #{path}}
-  regexp = Regexp.new ".*#{string1}.*#{string2}"
-  page.body.should =~ regexp
+Then /movies should be in increasing order of "(.*)"/ do |field|
+  movies = Movie.all(:order => field)
+  movies.each_index do |i|
+    step %Q{I should see "#{movies[i][field]}" before "#{movies[i+1][field]}"} unless movies[i+1].nil?
+  end
 end
